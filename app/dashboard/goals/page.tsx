@@ -346,7 +346,7 @@ export default function GoalsPage() {
                 <Target className="h-12 w-12 mb-4 opacity-50" />
                 <p>Nenhuma meta ativa</p>
                 <p className="text-sm mt-1">
-                  Clique em "Nova Meta" para criar sua primeira meta
+                  Clique em &quot;Nova Meta&quot; para criar sua primeira meta
                 </p>
               </div>
             )}

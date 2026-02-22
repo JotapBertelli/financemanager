@@ -393,7 +393,7 @@ export default function ExpensesPage() {
                 <Receipt className="h-12 w-12 mb-4 opacity-50" />
                 <p>Nenhuma despesa encontrada</p>
                 <p className="text-sm mt-1">
-                  Clique em "Nova Despesa" para adicionar
+                  Clique em &quot;Nova Despesa&quot; para adicionar
                 </p>
               </div>
             )}

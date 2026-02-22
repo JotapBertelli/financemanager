@@ -685,7 +685,7 @@ export default function SimulatorPage() {
                     <PiggyBank className="h-12 w-12 mb-4 opacity-50" />
                     <p>Nenhuma simulação salva</p>
                     <p className="text-sm mt-1">
-                      Crie uma simulação e clique em "Salvar"
+                      Crie uma simulação e clique em &quot;Salvar&quot;
                     </p>
                   </div>
                 )}

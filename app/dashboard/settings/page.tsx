@@ -388,6 +388,7 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-6">
                   <div className="relative group">
                     {profileImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={profileImage}
                         alt="Foto de perfil"

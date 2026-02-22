@@ -625,7 +625,7 @@ export default function FixedExpensesPage() {
                 <Wallet className="h-12 w-12 mb-4 opacity-50" />
                 <p>Nenhum gasto fixo encontrado</p>
                 <p className="text-sm mt-1">
-                  Clique em "Novo Gasto Fixo" para adicionar
+                  Clique em &quot;Novo Gasto Fixo&quot; para adicionar
                 </p>
               </div>
             )}

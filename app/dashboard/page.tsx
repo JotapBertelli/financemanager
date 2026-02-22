@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { motion } from "framer-motion"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -68,7 +68,7 @@ export default function DashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const { toast } = useToast()
 
-  const fetchData = async (showRefreshToast = false) => {
+  const fetchData = useCallback(async (showRefreshToast = false) => {
     try {
       if (showRefreshToast) setIsRefreshing(true)
       
@@ -97,11 +97,11 @@ export default function DashboardPage() {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }
+  }, [toast])
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [fetchData])
 
   if (isLoading) {
     return (

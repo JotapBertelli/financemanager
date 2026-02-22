@@ -395,7 +395,7 @@ export default function IncomePage() {
                 <PiggyBank className="h-12 w-12 mb-4 opacity-50" />
                 <p>Nenhuma receita encontrada</p>
                 <p className="text-sm mt-1">
-                  Clique em "Nova Receita" para adicionar
+                  Clique em &quot;Nova Receita&quot; para adicionar
                 </p>
               </div>
             )}
