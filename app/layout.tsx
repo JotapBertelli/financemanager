@@ -13,6 +13,11 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: 'FinanceApp - Gestão Financeira Pessoal',
   description: 'Controle suas finanças de forma inteligente e visual',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({
