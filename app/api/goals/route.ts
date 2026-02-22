@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { investmentGoalSchema } from '@/lib/validations'
 import { ZodError } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Listar metas de investimento
 export async function GET() {
   try {

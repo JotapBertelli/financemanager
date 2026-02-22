@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { incomeSchema } from '@/lib/validations'
 import { ZodError } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Listar receitas
 export async function GET(request: Request) {
   try {

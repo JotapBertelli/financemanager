@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { fixedExpenseSchema } from '@/lib/validations'
 import { ZodError } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Listar gastos fixos
 export async function GET() {
   try {

@@ -6,6 +6,8 @@ import { investmentSimulationSchema } from '@/lib/validations'
 import { ZodError } from 'zod'
 import { calculateCompoundInterest, calculateSimpleInterest } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Listar simulações
 export async function GET() {
   try {

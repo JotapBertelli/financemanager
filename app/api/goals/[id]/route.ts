@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { investmentGoalSchema } from '@/lib/validations'
 import { ZodError } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Buscar meta por ID
 export async function GET(
   request: Request,
