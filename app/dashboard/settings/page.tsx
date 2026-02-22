@@ -13,6 +13,10 @@ import {
   Plus,
   Trash2,
   Save,
+  Camera,
+  X,
+  Pencil,
+  Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -56,7 +60,7 @@ const colorOptions = [
 ]
 
 export default function SettingsPage() {
-  const { data: session } = useSession()
+  const { data: session, update: updateSession } = useSession()
   const { theme, setTheme } = useTheme()
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
@@ -67,7 +71,189 @@ export default function SettingsPage() {
     type: "EXPENSE" as "EXPENSE" | "INCOME",
   })
   const [isSaving, setIsSaving] = useState(false)
+  const [profileImage, setProfileImage] = useState<string | null>(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [userName, setUserName] = useState("")
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [isSavingName, setIsSavingName] = useState(false)
   const { toast } = useToast()
+
+  // Buscar perfil do usuário
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const response = await fetch("/api/user/profile")
+      const result = await response.json()
+      if (result.success) {
+        if (result.data?.image) {
+          setProfileImage(result.data.image)
+        }
+        if (result.data?.name) {
+          setUserName(result.data.name)
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao buscar perfil:", error)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchUserProfile()
+  }, [fetchUserProfile])
+
+  // Inicializa o nome quando a sessão carregar
+  useEffect(() => {
+    if (session?.user?.name && !userName) {
+      setUserName(session.user.name)
+    }
+  }, [session?.user?.name, userName])
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validar tipo de arquivo
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Erro",
+        description: "Por favor, selecione uma imagem válida.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Validar tamanho (máximo 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Erro",
+        description: "A imagem deve ter no máximo 2MB.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsUploadingImage(true)
+
+    try {
+      // Converter para base64
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        const base64 = reader.result as string
+
+        const response = await fetch("/api/user/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: base64 }),
+        })
+
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result.error || "Erro ao atualizar imagem")
+        }
+
+        setProfileImage(base64)
+        await updateSession()
+
+        // Notifica outros componentes sobre a atualização
+        window.dispatchEvent(new Event("profile-updated"))
+
+        toast({
+          title: "Foto atualizada!",
+          description: "Sua foto de perfil foi atualizada com sucesso.",
+          variant: "success",
+        })
+
+        setIsUploadingImage(false)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao atualizar imagem",
+        variant: "destructive",
+      })
+      setIsUploadingImage(false)
+    }
+  }
+
+  const handleRemoveImage = async () => {
+    setIsUploadingImage(true)
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: null }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Erro ao remover imagem")
+      }
+
+      setProfileImage(null)
+      await updateSession()
+
+      // Notifica outros componentes sobre a atualização
+      window.dispatchEvent(new Event("profile-updated"))
+
+      toast({
+        title: "Foto removida!",
+        description: "Sua foto de perfil foi removida.",
+        variant: "success",
+      })
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover a foto.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
+  const handleSaveName = async () => {
+    if (!userName.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome não pode estar vazio.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSavingName(true)
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: userName.trim() }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || "Erro ao atualizar nome")
+      }
+
+      await updateSession()
+      window.dispatchEvent(new Event("profile-updated"))
+      setIsEditingName(false)
+
+      toast({
+        title: "Nome atualizado!",
+        description: "Seu nome foi atualizado com sucesso.",
+        variant: "success",
+      })
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao atualizar nome",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSavingName(false)
+    }
+  }
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -199,21 +385,65 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-violet-600 to-violet-500 flex items-center justify-center text-white text-2xl font-bold">
-                    {session?.user?.name
-                      ?.split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()
-                      .slice(0, 2) || "U"}
+                <div className="flex items-center gap-6">
+                  <div className="relative group">
+                    {profileImage ? (
+                      <img
+                        src={profileImage}
+                        alt="Foto de perfil"
+                        className="h-24 w-24 rounded-full object-cover border-4 border-violet-500/20"
+                      />
+                    ) : (
+                      <div className="h-24 w-24 rounded-full bg-gradient-to-br from-violet-600 to-violet-500 flex items-center justify-center text-white text-2xl font-bold border-4 border-violet-500/20">
+                        {session?.user?.name
+                          ?.split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2) || "U"}
+                      </div>
+                    )}
+                    
+                    {/* Overlay com opções */}
+                    <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                      <label className="cursor-pointer p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                        <Camera className="h-5 w-5 text-white" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={isUploadingImage}
+                        />
+                      </label>
+                      {profileImage && (
+                        <button
+                          onClick={handleRemoveImage}
+                          className="p-2 rounded-full bg-white/20 hover:bg-red-500/50 transition-colors"
+                          disabled={isUploadingImage}
+                        >
+                          <X className="h-5 w-5 text-white" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Loading indicator */}
+                    {isUploadingImage && (
+                      <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-white" />
+                      </div>
+                    )}
                   </div>
-                  <div>
+
+                  <div className="space-y-2">
                     <h3 className="text-xl font-semibold">
-                      {session?.user?.name || "Usuário"}
+                      {userName || session?.user?.name || "Usuário"}
                     </h3>
                     <p className="text-muted-foreground">
                       {session?.user?.email}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Passe o mouse sobre a foto para alterar
                     </p>
                   </div>
                 </div>
@@ -221,11 +451,53 @@ export default function SettingsPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Nome</Label>
-                    <Input
-                      value={session?.user?.name || ""}
-                      disabled
-                      className="bg-muted"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        value={userName || session?.user?.name || ""}
+                        onChange={(e) => setUserName(e.target.value)}
+                        disabled={!isEditingName || isSavingName}
+                        className={!isEditingName ? "bg-muted" : ""}
+                        placeholder="Seu nome"
+                      />
+                      {isEditingName ? (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleSaveName}
+                            disabled={isSavingName}
+                            className="shrink-0"
+                          >
+                            {isSavingName ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Check className="h-4 w-4 text-green-500" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setIsEditingName(false)
+                              setUserName(session?.user?.name || "")
+                            }}
+                            disabled={isSavingName}
+                            className="shrink-0"
+                          >
+                            <X className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setIsEditingName(true)}
+                          className="shrink-0"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Email</Label>
@@ -234,6 +506,9 @@ export default function SettingsPage() {
                       disabled
                       className="bg-muted"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      O email não pode ser alterado
+                    </p>
                   </div>
                 </div>
               </CardContent>

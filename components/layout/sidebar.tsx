@@ -21,6 +21,8 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 interface SidebarProps {
   isCollapsed: boolean
   onToggle: () => void
+  isMobile?: boolean
+  onNavigate?: () => void
 }
 
 const menuItems = [
@@ -61,20 +63,27 @@ const menuItems = [
   },
 ]
 
-export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggle, isMobile, onNavigate }: SidebarProps) {
   const pathname = usePathname()
+
+  const handleLinkClick = () => {
+    if (isMobile && onNavigate) {
+      onNavigate()
+    }
+  }
 
   return (
     <TooltipProvider delayDuration={0}>
       <motion.aside
         initial={false}
         animate={{
-          width: isCollapsed ? 80 : 280,
+          width: isMobile ? 280 : (isCollapsed ? 80 : 280),
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
-          "fixed left-0 top-0 z-40 h-screen border-r bg-card/50 backdrop-blur-xl",
-          "flex flex-col"
+          "fixed left-0 top-0 z-40 h-screen border-r bg-card/95 backdrop-blur-xl",
+          "flex flex-col",
+          isMobile && "shadow-2xl"
         )}
       >
         {/* Logo */}
@@ -117,17 +126,18 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             const linkContent = (
               <Link
                 href={item.href}
+                onClick={handleLinkClick}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                   isActive
                     ? "bg-gradient-to-r from-violet-600 to-violet-500 text-white shadow-lg shadow-violet-500/30"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                  isCollapsed && "justify-center px-0"
+                  isCollapsed && !isMobile && "justify-center px-0"
                 )}
               >
                 <Icon className={cn("h-5 w-5 shrink-0", isActive && "text-white")} />
                 <AnimatePresence mode="wait">
-                  {!isCollapsed && (
+                  {(!isCollapsed || isMobile) && (
                     <motion.span
                       initial={{ opacity: 0, width: 0 }}
                       animate={{ opacity: 1, width: "auto" }}
@@ -159,24 +169,36 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
         {/* Toggle Button */}
         <div className="border-t p-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggle}
-            className={cn(
-              "w-full justify-center",
-              !isCollapsed && "justify-start"
-            )}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-5 w-5" />
-            ) : (
-              <>
-                <ChevronLeft className="h-5 w-5 mr-2" />
-                <span>Recolher</span>
-              </>
-            )}
-          </Button>
+          {isMobile ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggle}
+              className="w-full justify-start"
+            >
+              <ChevronLeft className="h-5 w-5 mr-2" />
+              <span>Fechar menu</span>
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggle}
+              className={cn(
+                "w-full justify-center",
+                !isCollapsed && "justify-start"
+              )}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <>
+                  <ChevronLeft className="h-5 w-5 mr-2" />
+                  <span>Recolher</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </motion.aside>
     </TooltipProvider>

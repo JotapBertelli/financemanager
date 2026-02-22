@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-          image: user.image,
+          image: null, // Imagem é buscada via API para evitar cookie grande
         }
       },
     }),
@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         token.email = user.email
         token.name = user.name
-        token.picture = user.image
+        // Não armazenar imagem no JWT para evitar cookie grande
       }
       return token
     },
@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.email = token.email as string
         session.user.name = token.name as string
-        session.user.image = token.picture as string
+        // Imagem é buscada via API /api/user/profile
       }
       return session
     },

@@ -49,6 +49,7 @@ interface FixedExpense {
   frequency: "WEEKLY" | "MONTHLY" | "YEARLY"
   categoryId?: string | null
   isActive: boolean
+  lastPaidAt?: string | null
   category?: {
     name: string
     color: string
@@ -152,6 +153,46 @@ export default function FixedExpensesPage() {
     }
   }
 
+  // Verifica se foi pago no mês atual
+  const isPaidThisMonth = (lastPaidAt: string | null | undefined): boolean => {
+    if (!lastPaidAt) return false
+    const paidDate = new Date(lastPaidAt)
+    const now = new Date()
+    return (
+      paidDate.getMonth() === now.getMonth() &&
+      paidDate.getFullYear() === now.getFullYear()
+    )
+  }
+
+  const handleTogglePaid = async (expense: FixedExpense) => {
+    const isPaid = isPaidThisMonth(expense.lastPaidAt)
+    
+    try {
+      const response = await fetch(`/api/fixed-expenses/${expense.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAsPaid: !isPaid }),
+      })
+
+      if (response.ok) {
+        toast({
+          title: isPaid ? "Desmarcado!" : "Pago!",
+          description: isPaid 
+            ? "O gasto foi desmarcado como pago." 
+            : "O gasto foi marcado como pago este mês.",
+          variant: "success",
+        })
+        fetchFixedExpenses()
+      }
+    } catch {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status de pagamento.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const filteredExpenses = fixedExpenses.filter((expense) =>
     expense.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -160,10 +201,16 @@ export default function FixedExpensesPage() {
   const totalActive = activeExpenses.reduce((sum, e) => sum + e.amount, 0)
   const today = new Date().getDate()
 
+  // Gastos pagos este mês
+  const paidThisMonth = activeExpenses.filter((e) => isPaidThisMonth(e.lastPaidAt))
+  const totalPaid = paidThisMonth.reduce((sum, e) => sum + e.amount, 0)
+  const pendingExpenses = activeExpenses.filter((e) => !isPaidThisMonth(e.lastPaidAt))
+  const totalPending = pendingExpenses.reduce((sum, e) => sum + e.amount, 0)
+
   // Gastos próximos do vencimento (próximos 7 dias)
   const upcomingExpenses = activeExpenses.filter((e) => {
     const daysUntil = e.dueDay >= today ? e.dueDay - today : 30 - today + e.dueDay
-    return daysUntil <= 7
+    return daysUntil <= 7 && !isPaidThisMonth(e.lastPaidAt)
   })
 
   if (isLoading) {
@@ -207,7 +254,7 @@ export default function FixedExpensesPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="grid gap-4 md:grid-cols-3"
+        className="grid gap-3 grid-cols-2 lg:grid-cols-4"
       >
         <Card className="border-0 shadow-lg bg-gradient-to-r from-amber-500/10 to-amber-600/5">
           <CardContent className="pt-6">
@@ -229,9 +276,12 @@ export default function FixedExpensesPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Ativos</p>
+                <p className="text-sm text-muted-foreground">Pagos este mês</p>
                 <p className="text-2xl font-bold text-emerald-600 mt-1">
-                  {activeExpenses.length}
+                  {formatCurrency(totalPaid)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {paidThisMonth.length} de {activeExpenses.length} gastos
                 </p>
               </div>
               <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
@@ -241,11 +291,30 @@ export default function FixedExpensesPage() {
           </CardContent>
         </Card>
 
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-violet-500/10 to-violet-600/5">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Pendentes</p>
+                <p className="text-2xl font-bold text-violet-600 mt-1">
+                  {formatCurrency(totalPending)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {pendingExpenses.length} gastos restantes
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                <XCircle className="h-6 w-6 text-violet-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-0 shadow-lg bg-gradient-to-r from-red-500/10 to-red-600/5">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Próximos 7 dias</p>
+                <p className="text-sm text-muted-foreground">Vencem em 7 dias</p>
                 <p className="text-2xl font-bold text-red-600 mt-1">
                   {upcomingExpenses.length}
                 </p>
@@ -279,7 +348,7 @@ export default function FixedExpensesPage() {
         </Card>
       </motion.div>
 
-      {/* Table */}
+      {/* Table (Desktop) / Cards (Mobile) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -291,88 +360,244 @@ export default function FixedExpensesPage() {
           </CardHeader>
           <CardContent>
             {filteredExpenses.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Vencimento</TableHead>
-                    <TableHead>Frequência</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="w-[100px]">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Desktop Table */}
+                <div className="hidden lg:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Categoria</TableHead>
+                        <TableHead>Vencimento</TableHead>
+                        <TableHead>Frequência</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
+                        <TableHead className="text-center">Pago</TableHead>
+                        <TableHead className="text-center">Ativo</TableHead>
+                        <TableHead className="w-[100px]">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredExpenses.map((expense) => {
+                        const daysUntil =
+                          expense.dueDay >= today
+                            ? expense.dueDay - today
+                            : 30 - today + expense.dueDay
+                        const isUrgent = daysUntil <= 3 && expense.isActive && !isPaidThisMonth(expense.lastPaidAt)
+
+                        return (
+                          <TableRow
+                            key={expense.id}
+                            className={cn(isUrgent && "bg-red-50 dark:bg-red-950/20")}
+                          >
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                {isUrgent && (
+                                  <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse" />
+                                )}
+                                {expense.name}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {expense.category ? (
+                                <span
+                                  className="px-2 py-1 rounded-full text-xs font-medium"
+                                  style={{
+                                    backgroundColor: `${expense.category.color}20`,
+                                    color: expense.category.color,
+                                  }}
+                                >
+                                  {expense.category.name}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">
+                                  Sem categoria
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-medium">Dia {expense.dueDay}</span>
+                              <span className="text-xs text-muted-foreground ml-2">
+                                ({daysUntil === 0 ? "Hoje" : `${daysUntil} dias`})
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400">
+                                {frequencyLabels[expense.frequency]}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right font-semibold text-amber-600">
+                              {formatCurrency(expense.amount)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Button
+                                variant={isPaidThisMonth(expense.lastPaidAt) ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleTogglePaid(expense)}
+                                className={cn(
+                                  "gap-1",
+                                  isPaidThisMonth(expense.lastPaidAt) 
+                                    ? "bg-emerald-500 hover:bg-emerald-600" 
+                                    : "text-muted-foreground hover:text-foreground"
+                                )}
+                                disabled={!expense.isActive}
+                              >
+                                {isPaidThisMonth(expense.lastPaidAt) ? (
+                                  <>
+                                    <CheckCircle className="h-4 w-4" />
+                                    Pago
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="h-4 w-4" />
+                                    Pagar
+                                  </>
+                                )}
+                              </Button>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                {expense.isActive ? (
+                                  <CheckCircle className="h-4 w-4 text-emerald-500" />
+                                ) : (
+                                  <XCircle className="h-4 w-4 text-gray-400" />
+                                )}
+                                <Switch
+                                  checked={expense.isActive}
+                                  onCheckedChange={() => handleToggleActive(expense)}
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setSelectedExpense(expense)
+                                    setIsFormOpen(true)
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setDeleteExpense(expense)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="lg:hidden space-y-3">
                   {filteredExpenses.map((expense) => {
                     const daysUntil =
                       expense.dueDay >= today
                         ? expense.dueDay - today
                         : 30 - today + expense.dueDay
-                    const isUrgent = daysUntil <= 3 && expense.isActive
+                    const isUrgent = daysUntil <= 3 && expense.isActive && !isPaidThisMonth(expense.lastPaidAt)
+                    const isPaid = isPaidThisMonth(expense.lastPaidAt)
 
                     return (
-                      <TableRow
+                      <div
                         key={expense.id}
-                        className={cn(isUrgent && "bg-red-50 dark:bg-red-950/20")}
+                        className={cn(
+                          "p-4 rounded-xl border bg-card",
+                          isUrgent && "border-red-500/50 bg-red-50 dark:bg-red-950/20",
+                          isPaid && "border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/10",
+                          !expense.isActive && "opacity-60"
+                        )}
                       >
-                        <TableCell className="font-medium">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              {isUrgent && (
+                                <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse shrink-0" />
+                              )}
+                              <h4 className="font-semibold truncate">{expense.name}</h4>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                              {expense.category && (
+                                <span
+                                  className="px-2 py-0.5 rounded-full text-xs font-medium"
+                                  style={{
+                                    backgroundColor: `${expense.category.color}20`,
+                                    color: expense.category.color,
+                                  }}
+                                >
+                                  {expense.category.name}
+                                </span>
+                              )}
+                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400">
+                                {frequencyLabels[expense.frequency]}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-between mt-3">
+                              <div className="text-sm text-muted-foreground">
+                                <span className="font-medium">Dia {expense.dueDay}</span>
+                                <span className="ml-1">
+                                  ({daysUntil === 0 ? "Hoje" : `${daysUntil} dias`})
+                                </span>
+                              </div>
+                              <span className="text-lg font-bold text-amber-600">
+                                {formatCurrency(expense.amount)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-4 pt-3 border-t">
                           <div className="flex items-center gap-2">
-                            {isUrgent && (
-                              <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse" />
-                            )}
-                            {expense.name}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {expense.category ? (
-                            <span
-                              className="px-2 py-1 rounded-full text-xs font-medium"
-                              style={{
-                                backgroundColor: `${expense.category.color}20`,
-                                color: expense.category.color,
-                              }}
+                            <Button
+                              variant={isPaid ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleTogglePaid(expense)}
+                              className={cn(
+                                "gap-1 h-9",
+                                isPaid 
+                                  ? "bg-emerald-500 hover:bg-emerald-600" 
+                                  : "text-muted-foreground hover:text-foreground"
+                              )}
+                              disabled={!expense.isActive}
                             >
-                              {expense.category.name}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">
-                              Sem categoria
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">Dia {expense.dueDay}</span>
-                          <span className="text-xs text-muted-foreground ml-2">
-                            ({daysUntil === 0 ? "Hoje" : `${daysUntil} dias`})
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400">
-                            {frequencyLabels[expense.frequency]}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right font-semibold text-amber-600">
-                          {formatCurrency(expense.amount)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            {expense.isActive ? (
-                              <CheckCircle className="h-4 w-4 text-emerald-500" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-gray-400" />
-                            )}
-                            <Switch
-                              checked={expense.isActive}
-                              onCheckedChange={() => handleToggleActive(expense)}
-                            />
+                              {isPaid ? (
+                                <>
+                                  <CheckCircle className="h-4 w-4" />
+                                  Pago
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="h-4 w-4" />
+                                  Pagar
+                                </>
+                              )}
+                            </Button>
+                            
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Switch
+                                checked={expense.isActive}
+                                onCheckedChange={() => handleToggleActive(expense)}
+                              />
+                              <span className="hidden sm:inline">
+                                {expense.isActive ? "Ativo" : "Inativo"}
+                              </span>
+                            </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
+
                           <div className="flex gap-1">
                             <Button
                               variant="ghost"
                               size="icon"
+                              className="h-9 w-9"
                               onClick={() => {
                                 setSelectedExpense(expense)
                                 setIsFormOpen(true)
@@ -383,17 +608,18 @@ export default function FixedExpensesPage() {
                             <Button
                               variant="ghost"
                               size="icon"
+                              className="h-9 w-9"
                               onClick={() => setDeleteExpense(expense)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </div>
+                      </div>
                     )
                   })}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <Wallet className="h-12 w-12 mb-4 opacity-50" />

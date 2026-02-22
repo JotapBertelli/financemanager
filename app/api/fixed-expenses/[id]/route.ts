@@ -104,6 +104,58 @@ export async function PUT(
   }
 }
 
+// PATCH - Marcar como pago/não pago
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      )
+    }
+
+    const existing = await prisma.fixedExpense.findFirst({
+      where: {
+        id: params.id,
+        userId: session.user.id,
+      },
+    })
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'Gasto fixo não encontrado' },
+        { status: 404 }
+      )
+    }
+
+    const body = await request.json()
+    const { markAsPaid } = body
+
+    const fixedExpense = await prisma.fixedExpense.update({
+      where: { id: params.id },
+      data: {
+        lastPaidAt: markAsPaid ? new Date() : null,
+      },
+      include: {
+        category: true,
+      },
+    })
+
+    return NextResponse.json({ success: true, data: fixedExpense })
+  } catch (error) {
+    console.error('Erro ao atualizar pagamento:', error)
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    )
+  }
+}
+
 // DELETE - Excluir gasto fixo
 export async function DELETE(
   request: Request,

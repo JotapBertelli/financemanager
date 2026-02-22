@@ -10,6 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 // Modelo de Usuário
 model User {
   id            String    @id @default(cuid())
@@ -41,12 +42,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String? 
+  access_token      String? 
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String? 
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -72,7 +73,7 @@ model Category {
   name      String
   color     String   @default("#8b5cf6")
   icon      String?
-  type      CategoryType @default(EXPENSE)
+  type      String   @default("EXPENSE")
   userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -85,24 +86,18 @@ model Category {
   @@map("categories")
 }
 
-// Tipo de categoria
-enum CategoryType {
-  EXPENSE
-  INCOME
-}
-
 // Despesas (gastos variáveis)
 model Expense {
-  id          String      @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String?
   amount      Float
   date        DateTime
-  type        ExpenseType @default(VARIABLE)
+  type        String   @default("VARIABLE")
   categoryId  String?
   userId      String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -111,25 +106,20 @@ model Expense {
   @@map("expenses")
 }
 
-// Tipo de despesa
-enum ExpenseType {
-  FIXED
-  VARIABLE
-}
-
 // Gastos fixos recorrentes
 model FixedExpense {
-  id          String            @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   description String?
   amount      Float
-  dueDay      Int              // Dia do vencimento (1-31)
-  frequency   ExpenseFrequency @default(MONTHLY)
+  dueDay      Int       // Dia do vencimento (1-31)
+  frequency   String    @default("MONTHLY")
   categoryId  String?
-  isActive    Boolean          @default(true)
+  isActive    Boolean   @default(true)
+  lastPaidAt  DateTime? // Data do último pagamento
   userId      String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -138,41 +128,23 @@ model FixedExpense {
   @@map("fixed_expenses")
 }
 
-// Frequência de despesa fixa
-enum ExpenseFrequency {
-  WEEKLY
-  MONTHLY
-  YEARLY
-}
-
 // Receitas
 model Income {
-  id          String     @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String?
   amount      Float
   date        DateTime
-  type        IncomeType @default(SALARY)
-  isRecurring Boolean    @default(false)
+  type        String   @default("SALARY")
+  isRecurring Boolean  @default(false)
   userId      String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, date])
   @@map("incomes")
-}
-
-// Tipo de receita
-enum IncomeType {
-  SALARY        // Salário
-  FREELANCE     // Trabalho freelance
-  INVESTMENT    // Rendimento de investimento
-  BONUS         // Bônus
-  GIFT          // Presente
-  EXTRA         // Extra
-  OTHER         // Outros
 }
 
 // Metas de investimento
@@ -197,27 +169,21 @@ model InvestmentGoal {
 
 // Simulação de investimentos futuros
 model FutureInvestmentSimulation {
-  id                 String       @id @default(cuid())
+  id                 String   @id @default(cuid())
   name               String
-  initialAmount      Float        // Valor inicial
-  monthlyContribution Float       // Aporte mensal
-  interestRate       Float        // Taxa de juros (% ao ano)
-  interestType       InterestType @default(COMPOUND)
-  periodMonths       Int          // Período em meses
-  projectedAmount    Float?       // Valor projetado calculado
+  initialAmount      Float    // Valor inicial
+  monthlyContribution Float   // Aporte mensal
+  interestRate       Float    // Taxa de juros (% ao ano)
+  interestType       String   @default("COMPOUND")
+  periodMonths       Int      // Período em meses
+  projectedAmount    Float?   // Valor projetado calculado
   userId             String
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("future_investment_simulations")
-}
-
-// Tipo de juros
-enum InterestType {
-  SIMPLE
-  COMPOUND
 }
 
