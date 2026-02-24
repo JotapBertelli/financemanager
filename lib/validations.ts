@@ -170,9 +170,31 @@ export const categorySchema = z.object({
   type: z.enum(['EXPENSE', 'INCOME']).default('EXPENSE'),
 })
 
+// Schema de validação para recuperação de senha (solicitar email)
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Email inválido'),
+})
+
+// Schema de validação para redefinição de senha
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token é obrigatório'),
+  password: z
+    .string()
+    .min(6, 'Senha deve ter pelo menos 6 caracteres')
+    .max(100, 'Senha deve ter no máximo 100 caracteres')
+    .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
+    .regex(/[0-9]/, 'Senha deve conter pelo menos um número'),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'As senhas não coincidem',
+  path: ['confirmPassword'],
+})
+
 // Types inferidos dos schemas
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 export type ExpenseInput = z.infer<typeof expenseSchema>
 export type FixedExpenseInput = z.infer<typeof fixedExpenseSchema>
 export type IncomeInput = z.infer<typeof incomeSchema>

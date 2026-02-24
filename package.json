@@ -45,6 +45,7 @@
     "next": "14.0.4",
     "next-auth": "^4.24.5",
     "next-themes": "^0.2.1",
+    "nodemailer": "^7.0.13",
     "pg": "^8.16.3",
     "react": "^18.2.0",
     "react-day-picker": "^8.10.0",
@@ -58,6 +59,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.19.26",
+    "@types/nodemailer": "^7.0.11",
     "@types/pg": "^8.15.6",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",

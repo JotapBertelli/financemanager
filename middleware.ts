@@ -18,7 +18,7 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         // Páginas públicas (não precisa de autenticação)
-        const publicPaths = ['/login', '/register', '/forgot-password']
+        const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password']
         const isPublicPath = publicPaths.some(path =>
           req.nextUrl.pathname.startsWith(path)
         )
