@@ -14,6 +14,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  CreditCard,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -40,6 +41,11 @@ const menuItems = [
     title: "Gastos Fixos",
     href: "/dashboard/fixed-expenses",
     icon: Wallet,
+  },
+  {
+    title: "Cartões",
+    href: "/dashboard/credit-cards",
+    icon: CreditCard,
   },
   {
     title: "Receitas",

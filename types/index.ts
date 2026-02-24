@@ -152,3 +152,39 @@ export interface InvestmentProjection {
   interest: number
 }
 
+// Cartão de crédito
+export interface CreditCard {
+  id: string
+  name: string
+  lastDigits: string | null
+  brand: 'VISA' | 'MASTERCARD' | 'ELO' | 'AMEX' | 'HIPERCARD' | 'OTHER'
+  limit: number
+  closingDay: number
+  dueDay: number
+  color: string
+  isActive: boolean
+  userId: string
+  createdAt: Date
+  updatedAt: Date
+  expenses?: CreditCardExpense[]
+}
+
+export interface CreditCardExpense {
+  id: string
+  name: string
+  description: string | null
+  totalAmount: number
+  installments: number
+  date: Date
+  categoryId: string | null
+  category?: Category | null
+  creditCardId: string
+  creditCard?: CreditCard
+  userId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type CreditCardFormData = Omit<CreditCard, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'expenses'>
+export type CreditCardExpenseFormData = Omit<CreditCardExpense, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'category' | 'creditCard'>
+

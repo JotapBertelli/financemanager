@@ -190,11 +190,74 @@ export const resetPasswordSchema = z.object({
   path: ['confirmPassword'],
 })
 
+// Schema de validação para cartão de crédito
+export const creditCardSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Nome é obrigatório')
+    .max(100, 'Nome deve ter no máximo 100 caracteres'),
+  lastDigits: z
+    .string()
+    .regex(/^\d{4}$/, 'Informe os 4 últimos dígitos')
+    .optional()
+    .nullable(),
+  brand: z.enum(['VISA', 'MASTERCARD', 'ELO', 'AMEX', 'HIPERCARD', 'OTHER'], {
+    invalid_type_error: 'Bandeira inválida',
+  }),
+  limit: z
+    .number({ invalid_type_error: 'Limite deve ser um número' })
+    .positive('Limite deve ser positivo')
+    .max(999999999, 'Valor muito alto'),
+  closingDay: z
+    .number({ invalid_type_error: 'Dia de fechamento inválido' })
+    .int('Dia deve ser inteiro')
+    .min(1, 'Dia deve ser entre 1 e 31')
+    .max(31, 'Dia deve ser entre 1 e 31'),
+  dueDay: z
+    .number({ invalid_type_error: 'Dia de vencimento inválido' })
+    .int('Dia deve ser inteiro')
+    .min(1, 'Dia deve ser entre 1 e 31')
+    .max(31, 'Dia deve ser entre 1 e 31'),
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, 'Cor inválida (formato: #RRGGBB)')
+    .default('#8b5cf6'),
+  isActive: z.boolean().default(true),
+})
+
+// Schema de validação para despesa do cartão
+export const creditCardExpenseSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Nome é obrigatório')
+    .max(100, 'Nome deve ter no máximo 100 caracteres'),
+  description: z
+    .string()
+    .max(500, 'Descrição deve ter no máximo 500 caracteres')
+    .optional()
+    .nullable(),
+  totalAmount: z
+    .number({ invalid_type_error: 'Valor deve ser um número' })
+    .positive('Valor deve ser positivo')
+    .max(999999999, 'Valor muito alto'),
+  installments: z
+    .number({ invalid_type_error: 'Parcelas deve ser um número' })
+    .int('Parcelas deve ser inteiro')
+    .min(1, 'Mínimo 1 parcela')
+    .max(48, 'Máximo 48 parcelas')
+    .default(1),
+  date: z.date({ invalid_type_error: 'Data inválida' }),
+  categoryId: z.string().optional().nullable(),
+  creditCardId: z.string().min(1, 'Cartão é obrigatório'),
+})
+
 // Types inferidos dos schemas
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
+export type CreditCardInput = z.infer<typeof creditCardSchema>
+export type CreditCardExpenseInput = z.infer<typeof creditCardExpenseSchema>
 export type ExpenseInput = z.infer<typeof expenseSchema>
 export type FixedExpenseInput = z.infer<typeof fixedExpenseSchema>
 export type IncomeInput = z.infer<typeof incomeSchema>

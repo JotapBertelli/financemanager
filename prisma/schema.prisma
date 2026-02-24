@@ -33,6 +33,8 @@ model User {
   accounts               Account[]
   sessions               Session[]
   passwordResetTokens    PasswordResetToken[]
+  creditCards            CreditCard[]
+  creditCardExpenses     CreditCardExpense[]
 
   @@map("users")
 }
@@ -99,6 +101,7 @@ model Category {
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   expenses Expense[]
   fixedExpenses FixedExpense[]
+  creditCardExpenses CreditCardExpense[]
 
   @@unique([name, userId])
   @@map("categories")
@@ -203,5 +206,50 @@ model FutureInvestmentSimulation {
 
   @@index([userId])
   @@map("future_investment_simulations")
+}
+
+// Cartão de crédito
+model CreditCard {
+  id          String   @id @default(cuid())
+  name        String
+  lastDigits  String?
+  brand       String   @default("VISA")
+  limit       Float
+  closingDay  Int
+  dueDay      Int
+  color       String   @default("#8b5cf6")
+  isActive    Boolean  @default(true)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses CreditCardExpense[]
+
+  @@index([userId])
+  @@map("credit_cards")
+}
+
+// Despesa do cartão de crédito (compra parcelada ou à vista)
+model CreditCardExpense {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  totalAmount     Float
+  installments    Int      @default(1)
+  date            DateTime
+  categoryId      String?
+  creditCardId    String
+  userId          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  creditCard CreditCard  @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([creditCardId])
+  @@map("credit_card_expenses")
 }
 
