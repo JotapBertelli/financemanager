@@ -50,11 +50,19 @@ export async function POST(request: Request) {
       },
     })
 
-    await sendPasswordResetEmail({
-      to: user.email,
-      name: user.name,
-      token,
-    })
+    try {
+      await sendPasswordResetEmail({
+        to: user.email,
+        name: user.name,
+        token,
+      })
+    } catch (emailError) {
+      console.error('Erro ao enviar email de recuperação:', emailError)
+      return NextResponse.json(
+        { error: 'Erro ao enviar email. Verifique a configuração SMTP do servidor.' },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       success: true,
