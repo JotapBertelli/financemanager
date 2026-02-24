@@ -13,6 +13,7 @@ import {
   ShoppingCart,
   ChevronDown,
   ChevronUp,
+  Wifi,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -34,7 +35,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Progress } from "@/components/ui/progress"
 import { CreditCardForm } from "@/components/credit-cards/credit-card-form"
 import { CreditCardExpenseForm } from "@/components/credit-cards/credit-card-expense-form"
 import { useToast } from "@/hooks/use-toast"
@@ -313,65 +313,108 @@ export default function CreditCardsPage() {
               transition={{ delay: 0.1 * (index + 2) }}
             >
               <Card className="border-0 shadow-lg overflow-hidden">
-                {/* Card Header Visual */}
-                <div
-                  className="p-6 text-white relative overflow-hidden"
-                  style={{
-                    background: `linear-gradient(135deg, ${card.color}, ${card.color}cc)`,
-                  }}
-                >
-                  <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/10 -translate-y-8 translate-x-8" />
-                  <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/5 translate-y-8 -translate-x-8" />
+                {/* Credit Card Visual */}
+                <div className="p-4 sm:p-6">
+                  <div
+                    className="relative w-full max-w-[420px] mx-auto rounded-2xl p-6 text-white overflow-hidden select-none"
+                    style={{
+                      aspectRatio: "1.586 / 1",
+                      background: `linear-gradient(145deg, ${card.color} 0%, ${card.color}dd 40%, ${card.color}99 100%)`,
+                      boxShadow: `0 20px 60px -15px ${card.color}80, 0 8px 24px -8px rgba(0,0,0,0.3)`,
+                    }}
+                  >
+                    {/* Background decorations */}
+                    <div
+                      className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-20"
+                      style={{ background: `radial-gradient(circle, white 0%, transparent 70%)` }}
+                    />
+                    <div
+                      className="absolute -bottom-32 -left-16 w-72 h-72 rounded-full opacity-10"
+                      style={{ background: `radial-gradient(circle, white 0%, transparent 70%)` }}
+                    />
+                    <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvc3ZnPg==')] opacity-50" />
 
-                  <div className="relative flex items-start justify-between">
-                    <div>
-                      <p className="text-white/80 text-sm font-medium">
+                    {/* Top row: brand + actions */}
+                    <div className="relative flex items-start justify-between">
+                      <p className="text-white/90 text-sm font-bold tracking-widest uppercase">
                         {brandLabels[card.brand] || card.brand}
                       </p>
-                      <h3 className="text-xl font-bold mt-1">{card.name}</h3>
-                      {card.lastDigits && (
-                        <p className="text-white/70 text-sm mt-1">
-                          •••• •••• •••• {card.lastDigits}
-                        </p>
-                      )}
+                      <div className="flex gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/20 rounded-lg"
+                          onClick={() => {
+                            setSelectedCard(card)
+                            setIsCardFormOpen(true)
+                          }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/20 rounded-lg"
+                          onClick={() => setDeleteCard(card)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-white/80 hover:text-white hover:bg-white/20"
-                        onClick={() => {
-                          setSelectedCard(card)
-                          setIsCardFormOpen(true)
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-white/80 hover:text-white hover:bg-white/20"
-                        onClick={() => setDeleteCard(card)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+
+                    {/* Chip + Contactless */}
+                    <div className="relative flex items-center gap-3 mt-4">
+                      <div className="w-11 h-8 rounded-md bg-gradient-to-br from-yellow-300/90 to-yellow-500/90 shadow-inner flex items-center justify-center">
+                        <div className="w-7 h-5 rounded-sm border border-yellow-600/30 bg-gradient-to-br from-yellow-200/50 to-yellow-400/50" />
+                      </div>
+                      <Wifi className="h-5 w-5 text-white/50 rotate-90" />
+                    </div>
+
+                    {/* Card number */}
+                    <div className="relative mt-4">
+                      <p className="text-lg sm:text-xl font-mono tracking-[0.2em] text-white/90">
+                        ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{card.lastDigits || "••••"}
+                      </p>
+                    </div>
+
+                    {/* Bottom row: name + dates */}
+                    <div className="relative flex items-end justify-between mt-3">
+                      <div>
+                        <p className="text-[10px] text-white/50 uppercase tracking-wider">Nome do cartão</p>
+                        <p className="text-sm font-semibold tracking-wide uppercase">{card.name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-white/50 uppercase tracking-wider">Fecha / Vence</p>
+                        <p className="text-sm font-semibold">{String(card.closingDay).padStart(2, "0")} / {String(card.dueDay).padStart(2, "0")}</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="relative mt-6">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-white/80">Fatura atual</span>
+                  {/* Usage bar below the card */}
+                  <div className="max-w-[420px] mx-auto mt-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Fatura atual</span>
                       <span className="font-semibold">
-                        {formatCurrency(currentBill)} / {formatCurrency(card.limit)}
+                        {formatCurrency(currentBill)}
+                        <span className="text-muted-foreground font-normal"> / {formatCurrency(card.limit)}</span>
                       </span>
                     </div>
-                    <Progress
-                      value={usagePercent}
-                      className="h-2 bg-white/20"
-                    />
-                    <div className="flex justify-between text-xs mt-2 text-white/60">
-                      <span>Fecha dia {card.closingDay}</span>
-                      <span>Vence dia {card.dueDay}</span>
+                    <div className="h-3 w-full rounded-full bg-secondary overflow-hidden">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all duration-700 ease-out",
+                          usagePercent < 50
+                            ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
+                            : usagePercent < 80
+                            ? "bg-gradient-to-r from-amber-500 to-amber-400"
+                            : "bg-gradient-to-r from-red-500 to-red-400"
+                        )}
+                        style={{ width: `${usagePercent}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{usagePercent.toFixed(0)}% utilizado</span>
+                      <span>Disponível: {formatCurrency(Math.max(card.limit - currentBill, 0))}</span>
                     </div>
                   </div>
                 </div>
