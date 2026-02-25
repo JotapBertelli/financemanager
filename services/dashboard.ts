@@ -84,7 +84,7 @@ export async function getDashboardData(userId: string) {
     ...fixedByCategory.map(e => e.categoryId),
   ].filter((id): id is string => id !== null)
 
-  const uniqueCategoryIds = [...new Set(allCategoryIds)]
+  const uniqueCategoryIds = Array.from(new Set(allCategoryIds))
 
   const allCategories = await prisma.category.findMany({
     where: { id: { in: uniqueCategoryIds } },
