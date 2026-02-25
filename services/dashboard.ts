@@ -64,26 +64,48 @@ export async function getDashboardData(userId: string) {
     },
   })
 
-  // Busca detalhes das categorias
-  const categoryIds = expensesByCategory
-    .map(e => e.categoryId)
-    .filter((id): id is string => id !== null)
+  const variableExpenseAmount = totalExpenses._sum.amount || 0
+  const fixedExpenseAmount = fixedExpenses._sum.amount || 0
+  const totalExpenseAmount = variableExpenseAmount + fixedExpenseAmount
 
-  const categories = await prisma.category.findMany({
+  // Gastos fixos agrupados por categoria
+  const fixedByCategory = await prisma.fixedExpense.groupBy({
+    by: ['categoryId'],
     where: {
-      id: {
-        in: categoryIds,
-      },
+      userId,
+      isActive: true,
+      categoryId: { not: null },
     },
+    _sum: { amount: true },
   })
 
-  const totalExpenseAmount = totalExpenses._sum.amount || 0
+  const allCategoryIds = [
+    ...expensesByCategory.map(e => e.categoryId),
+    ...fixedByCategory.map(e => e.categoryId),
+  ].filter((id): id is string => id !== null)
 
-  const categorySummary = expensesByCategory.map(exp => {
-    const category = categories.find(c => c.id === exp.categoryId)
-    const amount = exp._sum.amount || 0
+  const uniqueCategoryIds = [...new Set(allCategoryIds)]
+
+  const allCategories = await prisma.category.findMany({
+    where: { id: { in: uniqueCategoryIds } },
+  })
+
+  const categoryTotals = new Map<string, number>()
+  for (const exp of expensesByCategory) {
+    if (exp.categoryId) {
+      categoryTotals.set(exp.categoryId, (categoryTotals.get(exp.categoryId) || 0) + (exp._sum.amount || 0))
+    }
+  }
+  for (const exp of fixedByCategory) {
+    if (exp.categoryId) {
+      categoryTotals.set(exp.categoryId, (categoryTotals.get(exp.categoryId) || 0) + (exp._sum.amount || 0))
+    }
+  }
+
+  const categorySummary = Array.from(categoryTotals.entries()).map(([catId, amount]) => {
+    const category = allCategories.find(c => c.id === catId)
     return {
-      categoryId: exp.categoryId || '',
+      categoryId: catId,
       categoryName: category?.name || 'Sem categoria',
       categoryColor: category?.color || '#6b7280',
       total: amount,
@@ -126,7 +148,7 @@ export async function getDashboardData(userId: string) {
       return {
         month: format(monthDate, 'MMM', { locale: ptBR }),
         income: income._sum.amount || 0,
-        expenses: expenses._sum.amount || 0,
+        expenses: (expenses._sum.amount || 0) + fixedExpenseAmount,
       }
     })
   )
@@ -170,7 +192,7 @@ export async function getDashboardData(userId: string) {
     totalIncome: totalIncome._sum.amount || 0,
     totalExpenses: totalExpenseAmount,
     balance: (totalIncome._sum.amount || 0) - totalExpenseAmount,
-    totalFixedExpenses: fixedExpenses._sum.amount || 0,
+    totalFixedExpenses: fixedExpenseAmount,
     expensesByCategory: categorySummary,
     monthlyData,
     recentExpenses,
