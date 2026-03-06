@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     const users = await prisma.user.findMany({
       where: {
-        plan: { in: ['PRO', 'BUSINESS'] },
+        plan: 'PREMIUM',
       },
       select: {
         id: true,

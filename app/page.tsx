@@ -325,7 +325,7 @@ export default async function Home() {
             </div>
           </FadeUp>
 
-          <StaggerContainer className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+          <StaggerContainer className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-3xl mx-auto">
             {[
               {
                 name: "Gratuito",
@@ -333,53 +333,33 @@ export default async function Home() {
                 period: "para sempre",
                 description: "Perfeito para começar a organizar suas finanças.",
                 features: [
-                  "Controle de despesas",
-                  "Até 3 categorias de orçamento",
-                  "1 cartão de crédito",
+                  "Até 50 despesas por mês",
+                  "Até 3 orçamentos",
+                  "Até 2 cartões de crédito",
                   "Score financeiro básico",
-                  "Relatórios simples",
+                  "Dashboard completo",
                 ],
                 cta: "Começar Grátis",
                 href: "/register",
                 popular: false,
               },
               {
-                name: "Pro",
-                price: "R$ 19,90",
+                name: "Premium",
+                price: "R$ 15",
                 period: "/mês",
                 description:
-                  "Para quem quer controle total das suas finanças.",
+                  "Acesso completo a todas as funcionalidades.",
                 features: [
-                  "Tudo do plano Gratuito",
-                  "Categorias ilimitadas",
-                  "Cartões ilimitados",
-                  "Metas financeiras",
-                  "Simulador de investimentos",
-                  "Relatórios avançados",
-                  "Exportar dados (CSV/PDF)",
+                  "Tudo ilimitado",
+                  "Exportação CSV",
+                  "Score financeiro detalhado",
+                  "Comprovantes em despesas",
+                  "Alertas por email",
+                  "Suporte prioritário",
                 ],
-                cta: "Assinar Pro",
+                cta: "Assinar Premium",
                 href: "/pricing",
                 popular: true,
-              },
-              {
-                name: "Business",
-                price: "R$ 39,90",
-                period: "/mês",
-                description: "Gestão financeira completa para profissionais.",
-                features: [
-                  "Tudo do plano Pro",
-                  "Múltiplas contas",
-                  "API de integração",
-                  "Suporte prioritário",
-                  "Consultoria financeira",
-                  "Dashboard personalizado",
-                  "Relatórios ilimitados",
-                  "Acesso antecipado a novidades",
-                ],
-                cta: "Assinar Business",
-                href: "/pricing",
-                popular: false,
               },
             ].map((plan) => (
               <StaggerItem key={plan.name}>

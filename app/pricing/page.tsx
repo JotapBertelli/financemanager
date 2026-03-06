@@ -13,7 +13,6 @@ import {
   Loader2,
   Crown,
   Zap,
-  Building2,
   Copy,
   CheckCircle2,
   X,
@@ -27,66 +26,6 @@ import {
   StaggerItem,
 } from "@/components/landing/motion-wrapper"
 
-const plans = [
-  {
-    name: "Gratuito",
-    plan: "FREE" as const,
-    price: "R$ 0",
-    period: "/mês",
-    description: "Perfeito para começar a organizar suas finanças pessoais.",
-    icon: Zap,
-    features: [
-      "Até 50 despesas por mês",
-      "Até 3 orçamentos",
-      "Até 2 cartões",
-      "Até 3 metas",
-      "Dashboard básico",
-      "Score resumido",
-    ],
-    cta: "Começar Grátis",
-    paid: false,
-    popular: false,
-  },
-  {
-    name: "Pro",
-    plan: "PRO" as const,
-    price: "R$ 19,90",
-    period: "/mês",
-    description: "Para quem quer controle total das suas finanças.",
-    icon: Crown,
-    features: [
-      "Despesas ilimitadas",
-      "Orçamentos ilimitados",
-      "Cartões ilimitados",
-      "Metas ilimitadas",
-      "Exportação CSV",
-      "Score detalhado",
-      "Comprovantes",
-      "Alertas por email",
-    ],
-    cta: "Assinar com PIX",
-    paid: true,
-    popular: true,
-  },
-  {
-    name: "Business",
-    plan: "BUSINESS" as const,
-    price: "R$ 39,90",
-    period: "/mês",
-    description: "Gestão financeira completa para profissionais e equipes.",
-    icon: Building2,
-    features: [
-      "Tudo do Pro",
-      "Multi-usuário (em breve)",
-      "Relatórios avançados (em breve)",
-      "Suporte prioritário",
-    ],
-    cta: "Assinar com PIX",
-    paid: true,
-    popular: false,
-  },
-]
-
 const faqItems = [
   {
     question: "Posso cancelar a qualquer momento?",
@@ -99,12 +38,7 @@ const faqItems = [
       "Ao assinar, geramos um QR code PIX para você pagar instantaneamente pelo app do seu banco. O plano é ativado assim que o pagamento é confirmado (geralmente em segundos). A cada mês, enviamos um novo PIX por email para renovação.",
   },
   {
-    question: "Posso mudar de plano depois?",
-    answer:
-      "Claro! Você pode fazer upgrade a qualquer momento. Para downgrade, basta não renovar no próximo ciclo e seu plano volta para o Gratuito.",
-  },
-  {
-    question: "Meus dados são mantidos se eu fizer downgrade?",
+    question: "Meus dados são mantidos se eu cancelar?",
     answer:
       "Sim, seus dados nunca são apagados. Se você voltar para o plano gratuito, os dados existentes são mantidos, mas funcionalidades exclusivas ficam desabilitadas até um novo upgrade.",
   },
@@ -163,11 +97,9 @@ interface PixPaymentData {
 
 function PixModal({
   data,
-  planName,
   onClose,
 }: {
   data: PixPaymentData
-  planName: string
   onClose: () => void
 }) {
   const router = useRouter()
@@ -264,7 +196,7 @@ function PixModal({
             </motion.div>
             <h3 className="text-2xl font-bold">Pagamento confirmado!</h3>
             <p className="text-muted-foreground">
-              Seu plano {planName} foi ativado. Redirecionando...
+              Seu plano Premium foi ativado. Redirecionando...
             </p>
           </div>
         ) : status === "expired" ? (
@@ -285,7 +217,7 @@ function PixModal({
                 <QrCode className="h-5 w-5" />
                 <span className="text-sm font-medium">Pagar com PIX</span>
               </div>
-              <h3 className="text-xl font-bold">Plano {planName}</h3>
+              <h3 className="text-xl font-bold">Plano Premium - R$ 15,00/mês</h3>
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
                 <span>Expira em {timeLeft}</span>
@@ -343,17 +275,16 @@ function PixModal({
 
 export default function PricingPage() {
   const router = useRouter()
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const [pixData, setPixData] = useState<PixPaymentData | null>(null)
-  const [pixPlanName, setPixPlanName] = useState("")
 
-  async function handleSubscribe(plan: string, planName: string) {
-    setLoadingPlan(planName)
+  async function handleSubscribe() {
+    setLoading(true)
     try {
       const res = await fetch("/api/payments/create-pix", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan: "PREMIUM" }),
       })
 
       if (res.status === 401) {
@@ -365,22 +296,19 @@ export default function PricingPage() {
 
       if (data.paymentId) {
         setPixData(data)
-        setPixPlanName(planName)
       }
     } catch {
       // error
     } finally {
-      setLoadingPlan(null)
+      setLoading(false)
     }
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      {/* Background decorations */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-violet-500/10 blur-[120px]" />
         <div className="absolute top-1/2 -left-40 h-[400px] w-[400px] rounded-full bg-emerald-500/10 blur-[120px]" />
-        <div className="absolute -bottom-40 right-1/3 h-[500px] w-[500px] rounded-full bg-violet-500/5 blur-[120px]" />
       </div>
 
       {/* Navbar */}
@@ -398,7 +326,6 @@ export default function PricingPage() {
               </div>
               <span className="text-lg font-bold">FinanceApp</span>
             </Link>
-
             <Button variant="ghost" size="sm" asChild>
               <Link href="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -419,112 +346,122 @@ export default function PricingPage() {
                 Pague com PIX
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold leading-tight tracking-tight">
-                Escolha seu{" "}
+                Desbloqueie{" "}
                 <span className="bg-gradient-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent">
-                  plano
+                  tudo
                 </span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Comece gratuitamente e faça upgrade quando precisar. Pagamento
-                rápido e seguro via PIX.
+                Um único plano com acesso completo. Simples, sem surpresas.
               </p>
             </div>
           </FadeUp>
         </div>
       </section>
 
-      {/* Pricing Cards */}
+      {/* Plans */}
       <section className="pb-20 lg:pb-28">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-          <StaggerContainer className="grid md:grid-cols-3 gap-6 lg:gap-8 items-start">
-            {plans.map((plan) => (
-              <StaggerItem key={plan.name}>
-                <div
-                  className={`relative rounded-2xl border p-6 lg:p-8 space-y-6 h-full flex flex-col transition-all duration-300 ${
-                    plan.popular
-                      ? "border-violet-500/50 bg-violet-500/5 shadow-xl shadow-violet-500/10 md:scale-105"
-                      : "border-border/50 bg-card/50 backdrop-blur-sm hover:border-violet-500/20"
-                  }`}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-600 to-violet-400 px-4 py-1 text-xs font-semibold text-white shadow-lg">
-                        <Sparkles className="h-3 w-3" />
-                        Mais Popular
-                      </span>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+          <StaggerContainer className="grid md:grid-cols-2 gap-6 lg:gap-8 items-start">
+            {/* Free */}
+            <StaggerItem>
+              <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 lg:p-8 space-y-6 h-full flex flex-col hover:border-violet-500/20 transition-all">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-500">
+                      <Zap className="h-5 w-5" />
                     </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${
-                          plan.popular
-                            ? "bg-gradient-to-br from-violet-600 to-violet-400 text-white"
-                            : "bg-violet-500/10 text-violet-500"
-                        }`}
-                      >
-                        <plan.icon className="h-5 w-5" />
-                      </div>
-                      <h3 className="text-xl font-bold">{plan.name}</h3>
-                    </div>
-
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold tracking-tight">
-                        {plan.price}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {plan.period}
-                      </span>
-                    </div>
-
-                    <p className="text-sm text-muted-foreground">
-                      {plan.description}
-                    </p>
+                    <h3 className="text-xl font-bold">Gratuito</h3>
                   </div>
-
-                  <ul className="space-y-3 flex-1">
-                    {plan.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-3 text-sm"
-                      >
-                        <Check className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {plan.paid ? (
-                    <Button
-                      variant={plan.popular ? "gradient" : "outline"}
-                      className="w-full"
-                      size="lg"
-                      disabled={loadingPlan === plan.name}
-                      onClick={() => handleSubscribe(plan.plan, plan.name)}
-                    >
-                      {loadingPlan === plan.name ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Gerando PIX...
-                        </>
-                      ) : (
-                        plan.cta
-                      )}
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      size="lg"
-                      asChild
-                    >
-                      <Link href="/register">{plan.cta}</Link>
-                    </Button>
-                  )}
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold tracking-tight">R$ 0</span>
+                    <span className="text-sm text-muted-foreground">/mês</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Perfeito para começar a organizar suas finanças.
+                  </p>
                 </div>
-              </StaggerItem>
-            ))}
+                <ul className="space-y-3 flex-1">
+                  {[
+                    "Até 50 despesas por mês",
+                    "Até 3 orçamentos",
+                    "Até 2 cartões",
+                    "Até 3 metas",
+                    "Dashboard básico",
+                    "Score resumido",
+                  ].map((f) => (
+                    <li key={f} className="flex items-start gap-3 text-sm">
+                      <Check className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button variant="outline" className="w-full" size="lg" asChild>
+                  <Link href="/register">Começar Grátis</Link>
+                </Button>
+              </div>
+            </StaggerItem>
+
+            {/* Premium */}
+            <StaggerItem>
+              <div className="relative rounded-2xl border border-violet-500/50 bg-violet-500/5 shadow-xl shadow-violet-500/10 p-6 lg:p-8 space-y-6 h-full flex flex-col">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-600 to-violet-400 px-4 py-1 text-xs font-semibold text-white shadow-lg">
+                    <Sparkles className="h-3 w-3" />
+                    Recomendado
+                  </span>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-violet-400 text-white">
+                      <Crown className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-xl font-bold">Premium</h3>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold tracking-tight">R$ 15</span>
+                    <span className="text-sm text-muted-foreground">/mês</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Acesso completo a todas as funcionalidades.
+                  </p>
+                </div>
+                <ul className="space-y-3 flex-1">
+                  {[
+                    "Despesas ilimitadas",
+                    "Orçamentos ilimitados",
+                    "Cartões ilimitados",
+                    "Metas ilimitadas",
+                    "Exportação CSV",
+                    "Score financeiro detalhado",
+                    "Comprovantes em despesas",
+                    "Alertas por email",
+                    "Suporte prioritário",
+                  ].map((f) => (
+                    <li key={f} className="flex items-start gap-3 text-sm">
+                      <Check className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant="gradient"
+                  className="w-full"
+                  size="lg"
+                  disabled={loading}
+                  onClick={handleSubscribe}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Gerando PIX...
+                    </>
+                  ) : (
+                    "Assinar com PIX"
+                  )}
+                </Button>
+              </div>
+            </StaggerItem>
           </StaggerContainer>
         </div>
       </section>
@@ -540,20 +477,12 @@ export default function PricingPage() {
                   frequentes
                 </span>
               </h2>
-              <p className="text-muted-foreground text-lg">
-                Tire suas dúvidas sobre nossos planos e cobrança.
-              </p>
             </div>
           </FadeUp>
-
           <FadeUp delay={0.1}>
             <div className="space-y-3">
               {faqItems.map((item) => (
-                <FAQItem
-                  key={item.question}
-                  question={item.question}
-                  answer={item.answer}
-                />
+                <FAQItem key={item.question} question={item.question} answer={item.answer} />
               ))}
             </div>
           </FadeUp>
@@ -571,22 +500,14 @@ export default function PricingPage() {
               <span className="text-sm font-semibold">FinanceApp</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} FinanceApp. Todos os direitos
-              reservados.
+              &copy; {new Date().getFullYear()} FinanceApp. Todos os direitos reservados.
             </p>
           </div>
         </div>
       </footer>
 
-      {/* PIX Modal */}
       <AnimatePresence>
-        {pixData && (
-          <PixModal
-            data={pixData}
-            planName={pixPlanName}
-            onClose={() => setPixData(null)}
-          />
-        )}
+        {pixData && <PixModal data={pixData} onClose={() => setPixData(null)} />}
       </AnimatePresence>
     </div>
   )

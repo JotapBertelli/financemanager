@@ -60,10 +60,8 @@ export async function GET() {
 
     let mrr = 0
     for (const sub of subscriptions) {
-      if (sub.plan === 'PRO') {
-        mrr += 19.9
-      } else if (sub.plan === 'BUSINESS') {
-        mrr += 39.9
+      if (sub.plan === 'PREMIUM') {
+        mrr += 15
       }
     }
 

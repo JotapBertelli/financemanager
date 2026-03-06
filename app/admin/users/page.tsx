@@ -44,8 +44,7 @@ interface UsersResponse {
 function PlanBadge({ plan }: { plan: string }) {
   const styles: Record<string, string> = {
     FREE: "bg-gray-500/20 text-gray-300 border-gray-500/30",
-    PRO: "bg-violet-500/20 text-violet-300 border-violet-500/30",
-    BUSINESS: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+    PREMIUM: "bg-violet-500/20 text-violet-300 border-violet-500/30",
   }
   return (
     <span
@@ -53,8 +52,7 @@ function PlanBadge({ plan }: { plan: string }) {
         styles[plan] || styles.FREE
       }`}
     >
-      {plan === "PRO" && <Crown className="h-3 w-3" />}
-      {plan === "BUSINESS" && <Shield className="h-3 w-3" />}
+      {plan === "PREMIUM" && <Crown className="h-3 w-3" />}
       {plan}
     </span>
   )
@@ -206,8 +204,7 @@ export default function AdminUsersPage() {
                 <SelectContent className="bg-gray-900 border-gray-700">
                   <SelectItem value="ALL">Todos os planos</SelectItem>
                   <SelectItem value="FREE">Free</SelectItem>
-                  <SelectItem value="PRO">Pro</SelectItem>
-                  <SelectItem value="BUSINESS">Business</SelectItem>
+                  <SelectItem value="PREMIUM">Premium</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -276,8 +273,7 @@ export default function AdminUsersPage() {
                                 </SelectTrigger>
                                 <SelectContent className="bg-gray-900 border-gray-700">
                                   <SelectItem value="FREE">Free</SelectItem>
-                                  <SelectItem value="PRO">Pro</SelectItem>
-                                  <SelectItem value="BUSINESS">Business</SelectItem>
+                                  <SelectItem value="PREMIUM">Premium</SelectItem>
                                 </SelectContent>
                               </Select>
                               <Select

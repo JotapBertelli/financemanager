@@ -23,7 +23,7 @@ interface AdminStats {
   totalUsers: number
   newUsersThisMonth: number
   newUsersLastMonth: number
-  usersByPlan: { FREE?: number; PRO?: number; BUSINESS?: number }
+  usersByPlan: { FREE?: number; PREMIUM?: number }
   activeSubscriptions: number
   mrr: number
   recentUsers: {
@@ -87,8 +87,7 @@ function GrowthBadge({ current, previous }: { current: number; previous: number 
 function PlanBadge({ plan }: { plan: string }) {
   const styles: Record<string, string> = {
     FREE: "bg-gray-500/20 text-gray-300 border-gray-500/30",
-    PRO: "bg-violet-500/20 text-violet-300 border-violet-500/30",
-    BUSINESS: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+    PREMIUM: "bg-violet-500/20 text-violet-300 border-violet-500/30",
   }
   return (
     <span
@@ -96,8 +95,7 @@ function PlanBadge({ plan }: { plan: string }) {
         styles[plan] || styles.FREE
       }`}
     >
-      {plan === "PRO" && <Crown className="h-3 w-3" />}
-      {plan === "BUSINESS" && <Shield className="h-3 w-3" />}
+      {plan === "PREMIUM" && <Crown className="h-3 w-3" />}
       {plan}
     </span>
   )
@@ -147,13 +145,12 @@ export default function AdminPage() {
     )
   }
 
-  const totalByPlan = (stats.usersByPlan.FREE || 0) + (stats.usersByPlan.PRO || 0) + (stats.usersByPlan.BUSINESS || 0)
+  const totalByPlan = (stats.usersByPlan.FREE || 0) + (stats.usersByPlan.PREMIUM || 0)
   const maxSignups = Math.max(...stats.signupsByMonth.map((s) => s.count), 1)
 
   const planColors = {
     FREE: { bar: "bg-gray-500", text: "text-gray-300", label: "Free" },
-    PRO: { bar: "bg-violet-500", text: "text-violet-300", label: "Pro" },
-    BUSINESS: { bar: "bg-emerald-500", text: "text-emerald-300", label: "Business" },
+    PREMIUM: { bar: "bg-violet-500", text: "text-violet-300", label: "Premium" },
   }
 
   return (
@@ -286,8 +283,7 @@ export default function AdminPage() {
                     {(() => {
                       const plans = [
                         { key: "FREE" as const, color: "#6b7280" },
-                        { key: "PRO" as const, color: "#8b5cf6" },
-                        { key: "BUSINESS" as const, color: "#10b981" },
+                        { key: "PREMIUM" as const, color: "#8b5cf6" },
                       ]
                       let offset = 0
                       return plans.map(({ key, color }) => {
@@ -320,7 +316,7 @@ export default function AdminPage() {
 
                 {/* Legend */}
                 <div className="flex flex-wrap justify-center gap-4">
-                  {(["FREE", "PRO", "BUSINESS"] as const).map((plan) => {
+                  {(["FREE", "PREMIUM"] as const).map((plan) => {
                     const count = stats.usersByPlan[plan] || 0
                     const pct = totalByPlan > 0 ? ((count / totalByPlan) * 100).toFixed(1) : "0"
                     const info = planColors[plan]

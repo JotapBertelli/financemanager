@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const { plan } = await request.json()
 
-    if (!plan || !['PRO', 'BUSINESS'].includes(plan)) {
+    if (!plan || plan !== 'PREMIUM') {
       return NextResponse.json(
         { error: 'Plano inválido.' },
         { status: 400 }

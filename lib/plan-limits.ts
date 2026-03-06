@@ -1,7 +1,7 @@
 import { prisma } from './prisma'
 import { startOfMonth, endOfMonth } from 'date-fns'
 
-export type Plan = 'FREE' | 'PRO' | 'BUSINESS'
+export type Plan = 'FREE' | 'PREMIUM'
 
 export const PLAN_LIMITS = {
   FREE: {
@@ -14,17 +14,7 @@ export const PLAN_LIMITS = {
     receipts: false,
     emailAlerts: false,
   },
-  PRO: {
-    maxExpensesPerMonth: Infinity,
-    maxBudgets: Infinity,
-    maxCreditCards: Infinity,
-    maxGoals: Infinity,
-    csvExport: true,
-    detailedScore: true,
-    receipts: true,
-    emailAlerts: true,
-  },
-  BUSINESS: {
+  PREMIUM: {
     maxExpensesPerMonth: Infinity,
     maxBudgets: Infinity,
     maxCreditCards: Infinity,
@@ -50,10 +40,10 @@ export const PLAN_DETAILS = {
       'Score financeiro resumido',
     ],
   },
-  PRO: {
-    name: 'Pro',
-    price: 19.90,
-    description: 'Para quem leva finanças a sério',
+  PREMIUM: {
+    name: 'Premium',
+    price: 15,
+    description: 'Acesso completo a todas as funcionalidades',
     features: [
       'Despesas ilimitadas',
       'Orçamentos ilimitados',
@@ -63,16 +53,6 @@ export const PLAN_DETAILS = {
       'Score financeiro detalhado',
       'Comprovantes em despesas',
       'Alertas por email',
-    ],
-  },
-  BUSINESS: {
-    name: 'Business',
-    price: 39.90,
-    description: 'Para famílias e pequenas equipes',
-    features: [
-      'Tudo do Pro',
-      'Multi-usuário (em breve)',
-      'Relatórios avançados (em breve)',
       'Suporte prioritário',
     ],
   },
@@ -83,7 +63,9 @@ export async function getUserPlan(userId: string): Promise<Plan> {
     where: { id: userId },
     select: { plan: true },
   })
-  return (user?.plan as Plan) || 'FREE'
+  const plan = user?.plan
+  if (plan === 'PREMIUM') return 'PREMIUM'
+  return 'FREE'
 }
 
 export function getPlanLimits(plan: Plan) {

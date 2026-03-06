@@ -26,7 +26,7 @@ model User {
   profession    String?
   birthDate     DateTime?
   currency      String    @default("BRL")
-  plan          String    @default("FREE")  // FREE, PRO, BUSINESS
+  plan          String    @default("FREE")  // FREE, PREMIUM
   mercadoPagoCustomerId String? @unique
   role          String    @default("USER")  // USER, ADMIN
   onboardingCompleted Boolean @default(false)
