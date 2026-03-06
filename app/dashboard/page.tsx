@@ -11,6 +11,7 @@ import { Charts } from "@/components/dashboard/charts"
 import { RecentTransactions } from "@/components/dashboard/recent-transactions"
 import { GoalsOverview } from "@/components/dashboard/goals-overview"
 import { FixedExpensesAlert } from "@/components/dashboard/fixed-expenses-alert"
+import { BudgetOverview } from "@/components/dashboard/budget-overview"
 import { useToast } from "@/hooks/use-toast"
 
 interface DashboardData {
@@ -59,6 +60,14 @@ interface DashboardData {
     dueDay: number
     frequency: string
     category?: { name: string; color: string } | null
+  }>
+  budgets: Array<{
+    id: string
+    amount: number
+    categoryId: string
+    category: { id: string; name: string; color: string }
+    spent: number
+    percentage: number
   }>
 }
 
@@ -170,6 +179,7 @@ export default function DashboardPage() {
 
             {/* Right Column */}
             <div className="space-y-6">
+              <BudgetOverview budgets={data.budgets} />
               <GoalsOverview goals={data.investmentGoals} />
               <FixedExpensesAlert fixedExpenses={data.upcomingFixedExpenses} />
             </div>

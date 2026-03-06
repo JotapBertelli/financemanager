@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
+  PieChart,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -51,6 +52,11 @@ const menuItems = [
     title: "Receitas",
     href: "/dashboard/income",
     icon: PiggyBank,
+  },
+  {
+    title: "Orçamento",
+    href: "/dashboard/budgets",
+    icon: PieChart,
   },
   {
     title: "Metas",

@@ -188,6 +188,33 @@ export async function getDashboardData(userId: string) {
     take: 5,
   })
 
+  // Orçamentos do mês atual com gastos
+  const budgets = await prisma.budget.findMany({
+    where: {
+      userId,
+      month: now.getMonth() + 1,
+      year: now.getFullYear(),
+    },
+    include: { category: true },
+    orderBy: { category: { name: 'asc' } },
+  })
+
+  const budgetData = budgets.map((budget) => {
+    const spent = categoryTotals.get(budget.categoryId) || 0
+    return {
+      id: budget.id,
+      amount: budget.amount,
+      categoryId: budget.categoryId,
+      category: {
+        id: budget.category.id,
+        name: budget.category.name,
+        color: budget.category.color,
+      },
+      spent,
+      percentage: budget.amount > 0 ? Math.round((spent / budget.amount) * 100) : 0,
+    }
+  }).sort((a, b) => b.percentage - a.percentage)
+
   return {
     totalIncome: totalIncome._sum.amount || 0,
     totalExpenses: totalExpenseAmount,
@@ -199,6 +226,7 @@ export async function getDashboardData(userId: string) {
     recentIncomes,
     investmentGoals,
     upcomingFixedExpenses,
+    budgets: budgetData,
   }
 }
 
