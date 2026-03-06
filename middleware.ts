@@ -25,7 +25,7 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/pricing']
+        const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/pricing', '/admin/login']
         const isPublicPath = publicPaths.some(path =>
           req.nextUrl.pathname.startsWith(path)
         )

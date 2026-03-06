@@ -124,22 +124,25 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      totalUsers,
-      newUsersThisMonth,
-      newUsersLastMonth,
-      usersByPlan: usersByPlan.reduce(
-        (acc, item) => {
-          acc[item.plan] = item._count.id
-          return acc
-        },
-        {} as Record<string, number>
-      ),
-      activeSubscriptions,
-      mrr,
-      recentUsers,
-      churnedThisMonth,
-      signupsByMonth,
-      revenueByMonth,
+      success: true,
+      data: {
+        totalUsers,
+        newUsersThisMonth,
+        newUsersLastMonth,
+        usersByPlan: usersByPlan.reduce(
+          (acc, item) => {
+            acc[item.plan] = item._count.id
+            return acc
+          },
+          {} as Record<string, number>
+        ),
+        activeSubscriptions,
+        mrr,
+        recentUsers,
+        churnedThisMonth,
+        signupsByMonth,
+        revenueByMonth,
+      },
     })
   } catch (error) {
     console.error('Erro admin stats:', error)
