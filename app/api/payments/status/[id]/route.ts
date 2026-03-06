@@ -37,7 +37,7 @@ export async function GET(
           id: Number(payment.externalId),
         })
 
-        if (mpPayment.status === 'approved' && payment.status !== 'approved') {
+        if (mpPayment.status === 'approved') {
           await prisma.payment.update({
             where: { id: payment.id },
             data: { status: 'approved', paidAt: new Date() },
