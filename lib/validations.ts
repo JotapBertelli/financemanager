@@ -17,6 +17,39 @@ export const registerSchema = z.object({
     .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
     .regex(/[0-9]/, 'Senha deve conter pelo menos um número'),
   confirmPassword: z.string(),
+  monthlyIncome: z
+    .number({ invalid_type_error: 'Valor deve ser um número' })
+    .min(0, 'Renda não pode ser negativa')
+    .max(999999999, 'Valor muito alto')
+    .optional()
+    .nullable(),
+  financialGoal: z
+    .enum(['SAVE', 'INVEST', 'PAY_DEBTS', 'CONTROL_SPENDING', 'BUILD_EMERGENCY', 'OTHER'], {
+      invalid_type_error: 'Objetivo inválido',
+    })
+    .optional()
+    .nullable(),
+  payDay: z
+    .number({ invalid_type_error: 'Dia inválido' })
+    .int('Dia deve ser inteiro')
+    .min(1, 'Dia deve ser entre 1 e 31')
+    .max(31, 'Dia deve ser entre 1 e 31')
+    .optional()
+    .nullable(),
+  profession: z
+    .string()
+    .max(100, 'Profissão deve ter no máximo 100 caracteres')
+    .optional()
+    .nullable(),
+  birthDate: z
+    .string()
+    .optional()
+    .nullable(),
+  currency: z
+    .enum(['BRL', 'USD', 'EUR', 'GBP', 'ARS', 'CLP', 'COP', 'MXN', 'PEN', 'UYU'], {
+      invalid_type_error: 'Moeda inválida',
+    })
+    .default('BRL'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
   path: ['confirmPassword'],

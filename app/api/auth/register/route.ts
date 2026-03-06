@@ -34,6 +34,12 @@ export async function POST(request: Request) {
         name: validatedData.name,
         email: validatedData.email,
         password: hashedPassword,
+        monthlyIncome: validatedData.monthlyIncome ?? null,
+        financialGoal: validatedData.financialGoal ?? null,
+        payDay: validatedData.payDay ?? null,
+        profession: validatedData.profession ?? null,
+        birthDate: validatedData.birthDate ? new Date(validatedData.birthDate) : null,
+        currency: validatedData.currency ?? 'BRL',
       },
     })
 

@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server'
 
 export default withAuth(
   function middleware(req) {
-    // Se o usuário está autenticado e tenta acessar páginas de auth, redireciona
     if (req.nextauth.token) {
       if (
         req.nextUrl.pathname.startsWith('/login') ||
@@ -12,12 +11,20 @@ export default withAuth(
         return NextResponse.redirect(new URL('/dashboard', req.url))
       }
     }
-    return NextResponse.next()
+
+    const response = NextResponse.next()
+
+    if (req.nextUrl.pathname.startsWith('/dashboard')) {
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+      response.headers.set('Pragma', 'no-cache')
+      response.headers.set('Expires', '0')
+    }
+
+    return response
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        // Páginas públicas (não precisa de autenticação)
         const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password']
         const isPublicPath = publicPaths.some(path =>
           req.nextUrl.pathname.startsWith(path)
@@ -27,7 +34,6 @@ export default withAuth(
           return true
         }
 
-        // Para todas as outras rotas, verifica se o usuário está autenticado
         return !!token
       },
     },

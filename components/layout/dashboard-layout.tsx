@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Sidebar } from "./sidebar"
 import { Header } from "./header"
@@ -11,15 +13,33 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { status } = useSession()
+  const router = useRouter()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/login")
+    }
+  }, [status, router])
+
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        router.refresh()
+      }
+    }
+
+    window.addEventListener("pageshow", handlePageShow)
+    return () => window.removeEventListener("pageshow", handlePageShow)
+  }, [router])
+
+  useEffect(() => {
     setMounted(true)
     
-    // Verifica se é mobile
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024)
       if (window.innerWidth < 1024) {
@@ -30,7 +50,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     checkMobile()
     window.addEventListener("resize", checkMobile)
     
-    // Recupera preferência do usuário
     const saved = localStorage.getItem("sidebar-collapsed")
     if (saved !== null) {
       setSidebarCollapsed(JSON.parse(saved))

@@ -20,6 +20,12 @@ model User {
   emailVerified DateTime?
   password      String
   image         String?
+  monthlyIncome Float?
+  financialGoal String?
+  payDay        Int?
+  profession    String?
+  birthDate     DateTime?
+  currency      String    @default("BRL")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

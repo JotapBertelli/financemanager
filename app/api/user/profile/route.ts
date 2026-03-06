@@ -24,6 +24,12 @@ export async function GET() {
         name: true,
         email: true,
         image: true,
+        monthlyIncome: true,
+        financialGoal: true,
+        payDay: true,
+        profession: true,
+        birthDate: true,
+        currency: true,
       },
     })
 
@@ -50,7 +56,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json()
-    const { name, image } = body
+    const { name, image, monthlyIncome, financialGoal, payDay, profession, birthDate, currency } = body
 
     // Validar tamanho da imagem (máximo 2MB em base64)
     if (image && image.length > 2 * 1024 * 1024 * 1.37) {
@@ -60,10 +66,16 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const updateData: { name?: string; image?: string } = {}
+    const updateData: Record<string, unknown> = {}
     
     if (name !== undefined) updateData.name = name
     if (image !== undefined) updateData.image = image
+    if (monthlyIncome !== undefined) updateData.monthlyIncome = monthlyIncome
+    if (financialGoal !== undefined) updateData.financialGoal = financialGoal
+    if (payDay !== undefined) updateData.payDay = payDay
+    if (profession !== undefined) updateData.profession = profession
+    if (birthDate !== undefined) updateData.birthDate = birthDate ? new Date(birthDate) : null
+    if (currency !== undefined) updateData.currency = currency
 
     const user = await prisma.user.update({
       where: { id: session.user.id },
@@ -73,6 +85,12 @@ export async function PATCH(request: Request) {
         name: true,
         email: true,
         image: true,
+        monthlyIncome: true,
+        financialGoal: true,
+        payDay: true,
+        profession: true,
+        birthDate: true,
+        currency: true,
       },
     })
 
