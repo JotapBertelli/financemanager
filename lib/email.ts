@@ -10,6 +10,15 @@ const transporter = nodemailer.createTransport({
   },
 })
 
+export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+  return transporter.sendMail({
+    from: `"FinanceApp" <${process.env.SMTP_FROM || 'noreply@financeapp.com'}>`,
+    to,
+    subject,
+    html,
+  })
+}
+
 interface SendResetEmailParams {
   to: string
   name: string | null

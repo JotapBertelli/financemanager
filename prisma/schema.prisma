@@ -26,6 +26,10 @@ model User {
   profession    String?
   birthDate     DateTime?
   currency      String    @default("BRL")
+  plan          String    @default("FREE")  // FREE, PRO, BUSINESS
+  mercadoPagoCustomerId String? @unique
+  role          String    @default("USER")  // USER, ADMIN
+  onboardingCompleted Boolean @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -43,6 +47,8 @@ model User {
   creditCardExpenses     CreditCardExpense[]
   budgets                Budget[]
   notifications          Notification[]
+  subscription           Subscription?
+  payments               Payment[]
 
   @@map("users")
 }
@@ -151,6 +157,44 @@ model Notification {
   @@index([userId, read])
   @@index([userId, createdAt])
   @@map("notifications")
+}
+
+model Subscription {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  plan                String
+  status              String    // active, pending, expired, canceled
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  lastPaymentId       String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id            String    @id @default(cuid())
+  externalId    String    @unique
+  userId        String
+  amount        Float
+  plan          String
+  status        String    // pending, approved, rejected, cancelled, expired
+  pixQrCode     String?   @db.Text
+  pixQrCodeText String?
+  expiresAt     DateTime
+  paidAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("payments")
 }
 
 // Despesas (gastos variáveis)

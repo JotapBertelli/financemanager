@@ -14,6 +14,9 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.1",
+    "@aws-sdk/client-s3": "^3.1003.0",
+    "@aws-sdk/s3-request-presigner": "^3.1003.0",
     "@hookform/resolvers": "^3.3.2",
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^5.22.0",
@@ -42,6 +45,7 @@
     "dotenv": "^17.2.3",
     "framer-motion": "^10.16.16",
     "lucide-react": "^0.299.0",
+    "mercadopago": "^2.12.0",
     "next": "14.0.4",
     "next-auth": "^4.24.5",
     "next-themes": "^0.2.1",

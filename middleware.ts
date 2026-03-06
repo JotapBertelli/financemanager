@@ -14,7 +14,7 @@ export default withAuth(
 
     const response = NextResponse.next()
 
-    if (req.nextUrl.pathname.startsWith('/dashboard')) {
+    if (req.nextUrl.pathname.startsWith('/dashboard') || req.nextUrl.pathname.startsWith('/admin')) {
       response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
       response.headers.set('Pragma', 'no-cache')
       response.headers.set('Expires', '0')
@@ -25,7 +25,7 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password']
+        const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/pricing']
         const isPublicPath = publicPaths.some(path =>
           req.nextUrl.pathname.startsWith(path)
         )
@@ -43,8 +43,10 @@ export default withAuth(
 export const config = {
   matcher: [
     '/dashboard/:path*',
+    '/admin/:path*',
     '/login',
     '/register',
+    '/pricing',
   ],
 }
 
