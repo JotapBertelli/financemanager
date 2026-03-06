@@ -161,6 +161,7 @@ model Expense {
   amount      Float
   date        DateTime
   type        String   @default("VARIABLE")
+  receipt     String?
   categoryId  String?
   userId      String
   createdAt   DateTime @default(now())

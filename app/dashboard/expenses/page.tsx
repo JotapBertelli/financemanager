@@ -13,6 +13,7 @@ import {
   Loader2,
   Download,
   Receipt,
+  ImageIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,6 +43,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip"
 import { ExpenseForm } from "@/components/expenses/expense-form"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency, exportToCSV } from "@/lib/utils"
@@ -55,6 +68,7 @@ interface Expense {
   date: string
   type: "FIXED" | "VARIABLE"
   categoryId?: string | null
+  receipt?: string | null
   category?: {
     name: string
     color: string
@@ -78,6 +92,7 @@ export default function ExpensesPage() {
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
   const [deleteExpense, setDeleteExpense] = useState<Expense | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null)
   const { toast } = useToast()
 
   const fetchExpenses = useCallback(async () => {
@@ -364,25 +379,41 @@ export default function ExpensesPage() {
                         -{formatCurrency(expense.amount)}
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setSelectedExpense(expense)
-                              setIsFormOpen(true)
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteExpense(expense)}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
+                        <TooltipProvider delayDuration={0}>
+                          <div className="flex gap-1">
+                            {expense.receipt && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setReceiptPreview(expense.receipt!)}
+                                  >
+                                    <ImageIcon className="h-4 w-4 text-emerald-500" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Ver comprovante</TooltipContent>
+                              </Tooltip>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedExpense(expense)
+                                setIsFormOpen(true)
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteExpense(expense)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </TooltipProvider>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -438,6 +469,26 @@ export default function ExpensesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Receipt Preview */}
+      <Dialog open={!!receiptPreview} onOpenChange={() => setReceiptPreview(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Comprovante
+            </DialogTitle>
+          </DialogHeader>
+          {receiptPreview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={receiptPreview}
+              alt="Comprovante"
+              className="w-full rounded-lg object-contain max-h-[60vh]"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

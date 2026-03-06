@@ -86,11 +86,22 @@ export async function PUT(
       body.date = new Date(body.date)
     }
 
-    const validatedData = expenseSchema.parse(body)
+    const { receipt, ...rest } = body
+    const validatedData = expenseSchema.parse(rest)
+
+    if (receipt && receipt.length > 2 * 1024 * 1024 * 1.37) {
+      return NextResponse.json(
+        { error: 'A imagem do comprovante deve ter no máximo 2MB' },
+        { status: 400 }
+      )
+    }
+
+    const updateData: Record<string, unknown> = { ...validatedData }
+    if (receipt !== undefined) updateData.receipt = receipt
 
     const expense = await prisma.expense.update({
       where: { id: params.id },
-      data: validatedData,
+      data: updateData,
       include: {
         category: true,
       },

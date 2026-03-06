@@ -12,6 +12,7 @@ import { RecentTransactions } from "@/components/dashboard/recent-transactions"
 import { GoalsOverview } from "@/components/dashboard/goals-overview"
 import { FixedExpensesAlert } from "@/components/dashboard/fixed-expenses-alert"
 import { BudgetOverview } from "@/components/dashboard/budget-overview"
+import { FinancialScore } from "@/components/dashboard/financial-score"
 import { useToast } from "@/hooks/use-toast"
 
 interface DashboardData {
@@ -179,6 +180,7 @@ export default function DashboardPage() {
 
             {/* Right Column */}
             <div className="space-y-6">
+              <FinancialScore />
               <BudgetOverview budgets={data.budgets} />
               <GoalsOverview goals={data.investmentGoals} />
               <FixedExpensesAlert fixedExpenses={data.upcomingFixedExpenses} />

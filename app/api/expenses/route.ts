@@ -75,11 +75,20 @@ export async function POST(request: Request) {
       body.date = new Date(body.date)
     }
 
-    const validatedData = expenseSchema.parse(body)
+    const { receipt, ...rest } = body
+    const validatedData = expenseSchema.parse(rest)
+
+    if (receipt && receipt.length > 2 * 1024 * 1024 * 1.37) {
+      return NextResponse.json(
+        { error: 'A imagem do comprovante deve ter no máximo 2MB' },
+        { status: 400 }
+      )
+    }
 
     const expense = await prisma.expense.create({
       data: {
         ...validatedData,
+        receipt: receipt || null,
         userId: session.user.id,
       },
       include: {
